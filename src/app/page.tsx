@@ -1,101 +1,86 @@
+'use client'
+import { UserRound, LockKeyholeOpen  } from "lucide-react";
 import Image from "next/image";
+import { SubmitHandler, useForm } from "react-hook-form";
+import googleLogo from '@/../public/images/googleLogo.png'
+import userImg from '@/../public/images/user.png'
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+interface IFormInputs{
+  email: string,
+  password: string
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const router = useRouter();
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const { register, handleSubmit, formState: {errors, isSubmitting}} = useForm<IFormInputs>();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const onSubmit: SubmitHandler<IFormInputs> = async(data) => {
+    try{
+      const response = await fetch('api/login', {
+        method: "POST",
+        headers: {
+          "Content-Type" : "application/json"
+        },
+        body: JSON.stringify(data),
+      })
+      console.log(response)
+      if(response.ok){
+        setLoginError(null);
+        router.push('/dashboard');
+      }
+      else{
+        const errorResponse = await response.json();
+        setLoginError(errorResponse.message);
+      }
+    }
+    catch(error){
+      console.log(error)
+    }
+  }
+
+  return (
+    <div className=" flex justify-center items-center bg-loginBg w-full min-h-screen">
+      <div className=" flex border rounded-md p-5 flex-col gap-6 md:px-8 xl:w-1/4">
+        <div className=" flex items-center flex-col gap-2 text-white text-lg">
+          <Image src={userImg} alt="user" className=" w-24 h-24"/>
+          <h2 className=" text-2xl font-bold text-center">Sign In to Your Account</h2>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        { loginError !== null &&
+         <div className="formError">
+            <p>{loginError}!</p>
+          </div>
+        }
+        <form onSubmit={handleSubmit(onSubmit)} className=" flex flex-col gap-5">
+          <div>
+            <div className="  rounded-full flex items-center group ">
+              <div className=" leftIcon">
+                <UserRound />
+              </div>
+              <input type="email" id="email" {...register("email", {required: true})} disabled={isSubmitting} placeholder="Email" className=" leftInput" />
+            </div>
+            {errors.email && <p className=' text-red-500'>* email is required.</p>}
+          </div>
+          <div>
+            <div className="  rounded-full flex items-center group">
+              <input type="password" id="password" {...register("password", {required: true})} disabled={isSubmitting} placeholder="Password" className=" rightInput"  />
+              <div className=" rightIcon">
+                <LockKeyholeOpen />
+              </div>
+            </div>
+            {errors.password && <p className=' text-red-500'>* Password is required.</p>}
+          </div>
+          <div className=" flex flex-col gap-1">
+            <button className=" bg-white rounded-full py-1 font-semibold  hover:scale-95 duration-300 mt-8">Sign In</button>
+            <p className=" text-center text-white">or</p>
+            <button className=" bg-white rounded-full py-1 font-semibold hover:scale-95 duration-300 flex justify-center items-center gap-3"><Image src={googleLogo} alt="google" className=" w-6 h-6"/><p>Sign In with Google</p></button>
+          </div>
+        </form>
+        <p className=" text-gray-300 text-center">Don&apos;t have an account yet? <Link href='/signup' className='font-medium text-white'>Sign up</Link></p>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,18 @@
+services:
+  todo-nextapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: todo_container
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - DOMAIN=${DOMAIN}
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+    tty: true
+    
